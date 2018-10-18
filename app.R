@@ -65,7 +65,8 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
                     choices = sort(unique(art_grants$district)),
                     multiple = TRUE,
                     selectize = TRUE,
-                    selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"))
+                    selected = c("East Whittier City Elementary", "Hacienda La Puente Unified")),
+        actionButton("reset", "Reset Filters", icon = icon("refresh"))
         )
       ),
     fluidRow(
@@ -90,7 +91,7 @@ ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic
 server <- function(input, output) {
-  schools <- reactive({
+  schoolsInput <- reactive({
     ifelse(length(input$school_select) > 0,
            paste0("FULLNAME+IN+%28%27", paste(input$school_select, collapse = "%27,%27"),"%27)"),
            "1=1")
@@ -104,8 +105,7 @@ server <- function(input, output) {
       addMarkers(data = schools, clusterOptions = markerClusterOptions())
   })
   output$ArtGrantsPlot <- renderPlotly({
-    dat <- districts()
-    ggplot(data = arts_grants, aes(x = district, y = award_amount)) +
+    ggplot(data = art_grants, aes(x = district, y = award_amount)) +
       geom_bar(stat = "identity")
   })
   output$table <- DT::renderDataTable({
