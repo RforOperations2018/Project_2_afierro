@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "library(shiny)\nlibrary(shinydashboard)\nlibrary(rgdal)\nlibrary(leaflet)\nlibrary(leaflet.extras)\nlibrary(dplyr)\nlibrary(readxl)\nlibrary(stringr)\nlibrary(httr)\nlibrary(jsonlite)\nlibrary(plotly)\n\nschools <- rgdal::readOGR(\"https://opendata.arcgis.com/datasets/70baf6da243e40298ba9246e9a67409b_0.geojson\") %>%\n  spTransform(CRS(\"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs\"))\n\n# Define UI for application that draws a histogram\nui <- fluidPage(\n  # Application title\n  header <- dashboardHeader(title = \"Los Angeles County...\"),\n  \n  fluidRow(\n    box(\n      \n    )\n  )\n  \n)\n# Define server logic required to draw a histogram\nserver <- function(input, output) {\n  output$schoolmap <- renderLeaflet({\n    leaflet(schools) %>%\n      addProviderTiles(\"Esri.WorldImagery\") %>%\n      addMarkers()\n  })\n}\n\n# Run the application \nshinyApp(ui = ui, server = server)\n\n",
+    "created" : 1539829821492.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3921084878",
+    "id" : "B5E79BBF",
+    "lastKnownWriteTime" : 1539830105,
+    "last_content_update" : 1539830105548,
+    "path" : "~/GitHub/Project_2_afierro/Project_2_afierro/app.R",
+    "project_path" : "Project_2_afierro/app.R",
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
