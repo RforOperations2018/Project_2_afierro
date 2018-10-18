@@ -1,4 +1,5 @@
 library(shiny)
+library(shinydashboard)
 library(rgdal)
 library(leaflet)
 library(leaflet.extras)
@@ -19,7 +20,7 @@ ui <- fluidPage(
   
   fluidRow(
     box(
-      
+      leafletOutput("schoolmap")
     )
   )
 
