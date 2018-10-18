@@ -17,7 +17,15 @@ library(plotly)
 schools <- rgdal::readOGR("https://opendata.arcgis.com/datasets/70baf6da243e40298ba9246e9a67409b_0.geojson") %>%
   spTransform(CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
 
+schools_list <- GET("https://maps.lacity.org/lahub/rest/services/LAUSD_Schools/MapServer/0/query?where=1%3D1&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=FULLNAME&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&returnDistinctValues=true&resultOffset=&resultRecordCount=&f=pjson")
+list <- content(schools_list)
+schoolsList <- fromJSON(list)$features
+
+districts <- rgdal::readOGR("https://opendata.arcgis.com/datasets/de0e7b572e2b4c9ba3c1f62227b88a96_8.geojson")
+
 art_grants <- read.socrata ("https://data.lacounty.gov/resource/ahzu-94ky.json")
+
+community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
 
 # Define UI
   header <- dashboardHeader(title = "Los Angeles County...")
@@ -36,37 +44,74 @@ art_grants <- read.socrata ("https://data.lacounty.gov/resource/ahzu-94ky.json")
       tabItem("Map",
   fluidRow(
     box(
+      selectInput("school_select",
+                  "School:",
+                  choices = schoolsList,
+                  multiple = TRUE,
+                  selectize = TRUE),
+      actionButton("reset", "Reset Filters", icon = icon("refresh"))
+    )
+  ),
+  fluidRow(
+    box(
       leafletOutput("schoolmap")
     )
   )),
   tabItem("Chart",
     fluidRow(
+        box(
+        selectInput("DistrictSelect",
+                    "District:",
+                    choices = sort(unique(art_grants$district)),
+                    multiple = TRUE,
+                    selectize = TRUE,
+                    selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"))
+        )
+      ),
+    fluidRow(
       box(
         title = "Arts Grants by District",
         width = 12,
         (plotlyOutput("ArtGrantsPlot"))
-#DT::renderDataTable("table")
       )
     )
+  ),
+  tabItem("Table",
+    fluidRow(
+      box(width = 12,
+        DT::dataTableOutput("table")
+      )
+    )
+    
   )
-))
-
+)
+)
 ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic
 server <- function(input, output) {
+  schools <- reactive({
+    ifelse(length(input$school_select) > 0,
+           paste0("FULLNAME+IN+%28%27", paste(input$school_select, collapse = "%27,%27"),"%27)"),
+           "1=1")
+    url <- paste("https://maps.lacity.org/lahub/rest/services/LAUSD_Schools/MapServer/0/query?where=", filter, "&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&returnDistinctValues=false&resultOffset=&resultRecordCount=&f=pjson")
+})
+  
   output$schoolmap <- renderLeaflet({
-    leaflet(schools) %>%
+    leaflet() %>%
       addProviderTiles("Esri.WorldImagery") %>%
-      addMarkers()
+      addPolygons(data = districts) %>%
+      addMarkers(data = schools, clusterOptions = markerClusterOptions())
   })
   output$ArtGrantsPlot <- renderPlotly({
-    ggplot(data = art_grants, aes(x = district, y = award_amount)) +
+    dat <- districts()
+    ggplot(data = arts_grants, aes(x = district, y = award_amount)) +
       geom_bar(stat = "identity")
   })
-#  output$table <- DT::renderDataTable({
-#    (art_grants)
-#  })
+  output$table <- DT::renderDataTable({
+    (data = community)
+  })
+
 }
 
 # Run the application 
