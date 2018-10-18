@@ -44,8 +44,8 @@ art_grants <- read.socrata ("https://data.lacounty.gov/resource/ahzu-94ky.json")
       box(
         title = "Arts Grants by District",
         width = 12,
-#        (plotlyOutput("ArtGrantsPlot"))
-DT:renderDataTable("table")
+        (plotlyOutput("ArtGrantsPlot"))
+#DT::renderDataTable("table")
       )
     )
   )
@@ -60,13 +60,13 @@ server <- function(input, output) {
       addProviderTiles("Esri.WorldImagery") %>%
       addMarkers()
   })
-#  output$ArtGrantsPlot <- renderPlotly({
-#    ggplot(data = art_grants, aes(x = district, y = award_amount)) +
-#      geom_bar(stat = "identity")
-#  })
-  output$table <- DT:renderDataTable({
-    (art_grants)
+  output$ArtGrantsPlot <- renderPlotly({
+    ggplot(data = art_grants, aes(x = district, y = award_amount)) +
+      geom_bar(stat = "identity")
   })
+#  output$table <- DT::renderDataTable({
+#    (art_grants)
+#  })
 }
 
 # Run the application 
