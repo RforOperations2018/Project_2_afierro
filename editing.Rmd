@@ -1,0 +1,39 @@
+---
+title: "Untitled"
+author: "Allyson Fierro"
+date: "September 14, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readr)
+dat <- read_csv("~/GitHub/hw2-afierro/CleanPittArressts.csv")
+```
+
+```{r}
+table(dat$Arrest1)
+
+#Relabel Sex by making a new variable because I don't know how else to do it
+dat$"Sex2" <- NA
+dat$"Sex2" [dat$Sex == "F"] <- "Female"
+dat$"Sex2" [dat$Sex == "M"] <- "Male"
+
+#Relabel Race by making a new variable because I don't know how else to do it
+dat$"Race2" <- NA
+dat$"Race2" [dat$Race == "A"] <- "Asian"
+dat$"Race2" [dat$Race == "B"] <- "Black"
+dat$"Race2" [dat$Race == "H"] <- "Hispanic"
+dat$"Race2" [dat$Race == "W"] <- "White"
+
+#subset out NA's for Sex2
+dat.sex <- subset(dat, !is.na(dat$Sex2))
+#subset out NA's for Race2
+dat.race <- subset(dat, !is.na(dat$Race2))
+
+ggplot(data = dat, aes(x = Arrest1 )) + geom_bar()
+
+ggplot(data = dat.sex, aes(x = Sex2)) + geom_bar()
+
+ggplot(data = dat.race, aes(x = Race2, fill = Arrest1)) + geom_bar()
+
+```
