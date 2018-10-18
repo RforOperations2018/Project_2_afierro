@@ -71,7 +71,7 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       ),
     fluidRow(
       box(
-        title = "Arts Grants by District",
+        title = "Arts for All Advancement Grants",
         width = 12,
         (plotlyOutput("ArtGrantsPlot"))
       )
@@ -105,8 +105,9 @@ server <- function(input, output) {
       addMarkers(data = schools, clusterOptions = markerClusterOptions())
   })
   output$ArtGrantsPlot <- renderPlotly({
-    ggplot(data = art_grants, aes(x = district, y = award_amount)) +
-      geom_bar(stat = "identity")
+    ggplot(data = art_grants, aes(x = district, y = award_amount, fill = "award_amount")) +
+      geom_bar(stat = "identity") +
+      labs(x = "District", y = "Award Amount")
   })
   output$table <- DT::renderDataTable({
     (data = community)
