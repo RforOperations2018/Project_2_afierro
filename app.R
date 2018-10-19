@@ -146,7 +146,7 @@ server <- function(input, output, session = session) {
   output$schoolmap <- renderLeaflet({
     leaflet() %>%
       addProviderTiles("Esri.WorldImagery") %>%
-      addPolygons(data = districts) %>%
+      addPolygons(data = districts, fillOpacity = 0) %>%
       addMarkers(data = schoolsInput(), lng = ~x, lat = ~y, clusterOptions = markerClusterOptions())
   })
   
