@@ -144,6 +144,7 @@ server <- function(input, output) {
   output$ComArtPlot <- renderPlotly({
     ggplot(data = community, aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
       geom_bar(stat = "identity") +
+      theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1)) +
       labs(x = "School", y = "Enrollment") +
       theme(legend.position="none")
   })
