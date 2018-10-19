@@ -85,7 +85,8 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
                        "School:",
                        choices = sort(unique(community$school_name)),
                        multiple = TRUE,
-                       options = list(maxItems = 10)),
+                       selected = c("Agua Dulce Elementary", "Martha Baldwin Elementary"),
+                       options = list(maxItems = 15)),
         actionButton("reset", "Reset Filters", icon = icon("refresh"))
           
         )
@@ -157,10 +158,21 @@ server <- function(input, output, session = session) {
   #   # Making the URL is NOT the same as calling the API, you can use the read.socrata package here.
   # })
 
+  # AwardAmountInput <- reactive({
+  #   read.socrata("https://data.lacounty.gov/resource/ahzu-94ky.json?$query=SELECTCOUNTDISTINCT(district)FROMhttps://data.lacounty.gov/resource/ahzu-94ky.json")
+  # })
+  
+  
   AwardAmountInput <- reactive({
-    read.socrata("https://data.lacounty.gov/resource/ahzu-94ky.json?$query=SELECTCOUNTDISTINCT(district)FROMhttps://data.lacounty.gov/resource/ahzu-94ky.json")
+    DF <- art_grants
+    # ORG Filter
+    if (length(input$DistrictSelect) > 0 ) {
+      DF <- subset(DF, district %in% input$DistrictSelect)
+    }
+    
+    return(DF)
   })
-
+  
   output$ArtGrantsPlot <- renderPlotly({
     # I don't know how many times I have to say this. reactive functions WILL NOT WORK if they do not have the trailing parens after them "()".
     ggplot(data = AwardAmountInput(), aes(x = district, y = award_amount, fill = cycle)) +
@@ -168,9 +180,20 @@ server <- function(input, output, session = session) {
       labs(x = "District", y = "Award Amount")
   })
   
+  
+  CommunityInput <- reactive({
+    DF <- community
+    # ORG Filter
+    if (length(input$ComSchoolSelect) > 0 ) {
+      DF <- subset(DF, school_name %in% input$ComSchoolSelect)
+    }
+    
+    return(DF)
+  })
+  
   output$ComArtPlot <- renderPlotly({
     # Not calling the function again
-    ggplot(data = community, aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
+    ggplot(data = DF, aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
       geom_bar(stat = "identity") +
       theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1)) +
       labs(x = "School", y = "Enrollment") +
