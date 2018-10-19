@@ -123,34 +123,49 @@ ui <- dashboardPage(header, sidebar, body)
 # Define server logic
 server <- function(input, output) {
   schoolsInput <- reactive({
-    ifelse(length(input$school_select) > 0,
-           paste0("FULLNAME+IN+%28%27", paste(input$school_select, collapse = "%27,%27"),"%27)"),
-           "1=1")
-    url <- paste("https://maps.lacity.org/lahub/rest/services/LAUSD_Schools/MapServer/0/query?where=", filter, "&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&returnDistinctValues=false&resultOffset=&resultRecordCount=&f=pjson")
+    # You removed the part where you assigned the filter!
+    filter <- ifelse(length(input$school_select) > 0,
+                     gsub(" ", "+", paste0("FULLNAME+IN+%28%27", paste(input$school_select, collapse = "%27,%27"),"%27)")), # I added a gsub since most of the school names have spaces.
+                     "1=1")
+    # paste0() doesn't add spaces paste() does. We don't want spaces in our URLs
+    url <- paste0("https://maps.lacity.org/lahub/rest/services/LAUSD_Schools/MapServer/0/query?where=", filter, "&text=&objectIds=&time=&geometry=&geometryType=esriGeometryPoint&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=4326&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&returnDistinctValues=false&resultOffset=&resultRecordCount=&f=pjson")
+    # For Debugging
+    print(url)
+    # Make API Call
+    dat <- fromJSON(url)$features %>%
+      flatten()
+    
+    # Remove "attributes." and "geometry." from rownames
+    colnames(dat) <- gsub("attributes.|geometry.", "", colnames(dat))
+    # Return the dataframe when the function is called
+    return(dat)
 })
   
   output$schoolmap <- renderLeaflet({
     leaflet() %>%
       addProviderTiles("Esri.WorldImagery") %>%
       addPolygons(data = districts) %>%
-      addMarkers(data = schools, clusterOptions = markerClusterOptions())
+      # Since this is now a dataframe I had to tell leaflet which columns are the latitude and longitude. Also, you have to call the reactive function for the data.
+      addMarkers(data = schoolsInput(), lng = ~x, lat = ~y, clusterOptions = markerClusterOptions())
   })
   
   AwardAmountInput <- reactive({
     ifelse(length(input$DistrictSelect) > 0,
-           (paste0("school_district+IN+%28%27", paste(input$DistrictSelect, collapse = "%27,%27"), "%27",
-           "1=1")))
-    url <- paste("https://data.lacounty.gov/resource/gut7-6rmk.json?where=", filter, "school_district"
-    )
+           (paste0("?where=school_district+IN+%28%27", paste(input$DistrictSelect, collapse = "%27,%27"), "%27",
+           ""))) # 1=1 is only necessary for ESRI things, you actually can just paste nothing, in which case the ?where portion should be up here, because an empty where statement would return no data.
+    url <- paste("https://data.lacounty.gov/resource/gut7-6rmk.json", filter) # You had school district again in here for some reason. PRINT the URL's when you build them
+    # Making the URL is NOT the same as calling the API, you can use the read.socrata package here.
   })
   
   output$ArtGrantsPlot <- renderPlotly({
-    ggplot(data = AwardAmountInput, aes(x = district, y = award_amount, fill = cycle)) +
+    # I don't know how many times I have to say this. reactive functions WILL NOT WORK if they do not have the trailing parens after them "()".
+    ggplot(data = AwardAmountInput(), aes(x = district, y = award_amount, fill = cycle)) +
       geom_bar(stat = "identity") +
       labs(x = "District", y = "Award Amount")
   })
   
   output$ComArtPlot <- renderPlotly({
+    # Not calling the function again
     ggplot(data = community, aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
       geom_bar(stat = "identity") +
       theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1)) +
@@ -159,6 +174,7 @@ server <- function(input, output) {
   })
   
   output$table <- DT::renderDataTable({
+    # Not calling the reactive function.
     (data = community)
   })
 
