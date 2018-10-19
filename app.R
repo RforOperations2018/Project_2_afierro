@@ -133,7 +133,8 @@ server <- function(input, output) {
     leaflet() %>%
       addProviderTiles("Esri.WorldImagery") %>%
       addPolygons(data = districts) %>%
-      addMarkers(data = schools, clusterOptions = markerClusterOptions())
+      addMarkers(data = schools, clusterOptions = markerClusterOptions()) %>%
+      addPopups(schoolmap, popup = ~TOOLTIP)
   })
   output$ArtGrantsPlot <- renderPlotly({
     ggplot(data = art_grants, aes(x = district, y = award_amount, fill = cycle)) +
