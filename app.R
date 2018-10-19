@@ -55,7 +55,7 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
   ),
   fluidRow(
     box(width = 12,
-      leafletOutput("schoolmap")
+      leafletOutput("schoolmap", height = 700)
     )
   )),
   tabItem("Chart1",
@@ -74,7 +74,7 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       box(
         title = "Arts for All Advancement Grants",
         width = 12,
-        (plotlyOutput("ArtGrantsPlot"))
+        (plotlyOutput("ArtGrantsPlot", height = 600))
       )
     )
   ),
@@ -94,7 +94,7 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       box(
         title = "Community Arts Partners serving LA County Public Schools",
         width = 12,
-        (plotlyOutput("ComArtPlot"))
+        (plotlyOutput("ComArtPlot", height = 600))
       )
     )
   ),
@@ -164,4 +164,3 @@ server <- function(input, output) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
