@@ -14,10 +14,12 @@ library(reshape2)
 library(DT)
 library(plotly)
 
+#Load data
 schools <- rgdal::readOGR("https://opendata.arcgis.com/datasets/70baf6da243e40298ba9246e9a67409b_0.geojson") %>%
   spTransform(CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"))
 
 schools_list <- GET("https://maps.lacity.org/lahub/rest/services/LAUSD_Schools/MapServer/0/query?where=1%3D1&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=FULLNAME&returnGeometry=false&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&returnDistinctValues=true&resultOffset=&resultRecordCount=&f=pjson")
+#You did this, I don't know what it does
 list <- content(schools_list)
 schoolsList <- fromJSON(list)$features
 
@@ -29,7 +31,8 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
 
 # Define UI
   header <- dashboardHeader(title = "Los Angeles County Arts in Schools Programs")
-  
+
+#Make Sidebar  
   sidebar <- dashboardSidebar(
     sidebarMenu(
       id = "tabs",
@@ -39,9 +42,12 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       menuItem("Table", tabName = "Table", icon = icon("table"))
     )
   )
-  
+
+#Make body
   body<- dashboardBody(
     tabItems(
+      
+#Map tab
       tabItem("Map",
   fluidRow(
     box(
@@ -58,6 +64,8 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       leafletOutput("schoolmap", height = 700)
     )
   )),
+
+#Chart of arts for all grants & input
   tabItem("Chart1",
     fluidRow(
         box(
@@ -78,6 +86,8 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       )
     )
   ),
+
+#Chart of community partners & input
   tabItem("Chart2",
     fluidRow(
       box(
@@ -99,6 +109,8 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       )
     )
   ),
+
+#Data table of the community partners
   tabItem("Table",
     fluidRow(
       box(
@@ -123,8 +135,9 @@ ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic
 server <- function(input, output, session = session) {
+
+#This is the only input called with the API that works and you did it for me...so I don't think it counts
   schoolsInput <- reactive({
-    # You removed the part where you assigned the filter!
     filter <- ifelse(length(input$school_select) > 0,
                      gsub(" ", "+", paste0("FULLNAME+IN+%28%27", paste(input$school_select, collapse = "%27,%27"),"%27)")), # I added a gsub since most of the school names have spaces.
                      "1=1")
@@ -146,23 +159,25 @@ server <- function(input, output, session = session) {
   output$schoolmap <- renderLeaflet({
     leaflet() %>%
       addProviderTiles("Esri.WorldImagery") %>%
+  #No fill on polygons because changing the color of them all looked quite complicated
       addPolygons(data = districts, fillOpacity = 0) %>%
-      addMarkers(data = schoolsInput(), lng = ~x, lat = ~y, clusterOptions = markerClusterOptions())
+      addMarkers(data = schoolsInput(), lng = ~x, lat = ~y, clusterOptions = markerClusterOptions(), popup = schoolsInput()$TOOLTIP)
   })
-  
+
+#This attempt at trying to figure out the API thing was wrong
   # AwardAmountInput <- reactive({
   #   ifelse(length(input$DistrictSelect) > 0,
   #          (paste0("?where=school_district+IN+%28%27", paste(input$DistrictSelect, collapse = "%27,%27"), "%27",
-  #          ""))) # 1=1 is only necessary for ESRI things, you actually can just paste nothing, in which case the ?where portion should be up here, because an empty where statement would return no data.
-  #   url <- paste("https://data.lacounty.gov/resource/gut7-6rmk.json", filter) # You had school district again in here for some reason. PRINT the URL's when you build them
-  #   # Making the URL is NOT the same as calling the API, you can use the read.socrata package here.
+  #          "")))
+  #   url <- paste("https://data.lacounty.gov/resource/gut7-6rmk.json", filter)
   # })
 
+#This attempt was wrong as well. There was no clear answer on how to do a SELECT DISTINCT type query thing in SoQL so I tried this with no luck.
   # AwardAmountInput <- reactive({
   #   read.socrata("https://data.lacounty.gov/resource/ahzu-94ky.json?$query=SELECTCOUNTDISTINCT(district)FROMhttps://data.lacounty.gov/resource/ahzu-94ky.json")
   # })
   
-  
+#Selecting Districts for Chart 1  
   AwardAmountInput <- reactive({
     DF <- art_grants
     # ORG Filter
@@ -172,7 +187,8 @@ server <- function(input, output, session = session) {
     
     return(DF)
   })
-  
+
+#Chart 1
   output$ArtGrantsPlot <- renderPlotly({
     ggplot(data = AwardAmountInput(), aes(x = district, y = award_amount, fill = cycle)) +
       geom_bar(stat = "identity") +
@@ -182,7 +198,7 @@ server <- function(input, output, session = session) {
       theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
   })
   
-  
+#Selecting School for Chart 2
   CommunityInput <- reactive({
     DF <- community
     # ORG Filter
@@ -192,7 +208,8 @@ server <- function(input, output, session = session) {
     
     return(DF)
   })
-  
+
+#Chart 2  
   output$ComArtPlot <- renderPlotly({
     ggplot(data = CommunityInput(), aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
       geom_bar(stat = "identity") +
@@ -201,6 +218,7 @@ server <- function(input, output, session = session) {
       theme(legend.position="none") 
   })
   
+#Selecting school for data table 
   Community2Input <- reactive({
     DF <- community
     # ORG Filter
@@ -211,10 +229,12 @@ server <- function(input, output, session = session) {
     return(DF)
   })
   
+#Data Table
   output$table <- DT::renderDataTable({
     (data = Community2Input())
   })
 
+#This should reset my inputs but it doesn't work. 
   observeEvent(input$reset, {
     updateSelectInput(session, "school_select")
     updateSelectizeInput(session, "DistrictSelect", selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"))
