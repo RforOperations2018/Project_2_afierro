@@ -146,18 +146,22 @@ server <- function(input, output) {
     leaflet() %>%
       addProviderTiles("Esri.WorldImagery") %>%
       addPolygons(data = districts) %>%
-      # Since this is now a dataframe I had to tell leaflet which columns are the latitude and longitude. Also, you have to call the reactive function for the data.
       addMarkers(data = schoolsInput(), lng = ~x, lat = ~y, clusterOptions = markerClusterOptions())
   })
   
+  # AwardAmountInput <- reactive({
+  #   ifelse(length(input$DistrictSelect) > 0,
+  #          (paste0("?where=school_district+IN+%28%27", paste(input$DistrictSelect, collapse = "%27,%27"), "%27",
+  #          ""))) # 1=1 is only necessary for ESRI things, you actually can just paste nothing, in which case the ?where portion should be up here, because an empty where statement would return no data.
+  #   url <- paste("https://data.lacounty.gov/resource/gut7-6rmk.json", filter) # You had school district again in here for some reason. PRINT the URL's when you build them
+  #   # Making the URL is NOT the same as calling the API, you can use the read.socrata package here.
+  # })
+
   AwardAmountInput <- reactive({
-    ifelse(length(input$DistrictSelect) > 0,
-           (paste0("?where=school_district+IN+%28%27", paste(input$DistrictSelect, collapse = "%27,%27"), "%27",
-           ""))) # 1=1 is only necessary for ESRI things, you actually can just paste nothing, in which case the ?where portion should be up here, because an empty where statement would return no data.
-    url <- paste("https://data.lacounty.gov/resource/gut7-6rmk.json", filter) # You had school district again in here for some reason. PRINT the URL's when you build them
-    # Making the URL is NOT the same as calling the API, you can use the read.socrata package here.
+    art_grants <- read.socrata("https://data.lacounty.gov/resource/ahzu-94ky.json?$query=SELECTDISTINCT district")
+      sort(unique(art_grants$district))
   })
-  
+
   output$ArtGrantsPlot <- renderPlotly({
     # I don't know how many times I have to say this. reactive functions WILL NOT WORK if they do not have the trailing parens after them "()".
     ggplot(data = AwardAmountInput(), aes(x = district, y = award_amount, fill = cycle)) +
