@@ -100,6 +100,16 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
   ),
   tabItem("Table",
     fluidRow(
+      box(
+        selectInput("ComSchool2Select",
+                    "School:",
+                    choices = sort(unique(community$school_name)),
+                    multiple = TRUE,
+                    selectize = TRUE),
+        actionButton("reset", "Reset Filters", icon = icon("refresh"))
+    )
+    ),
+    fluidRow(
       box(width = 12,
         DT::dataTableOutput("table")
       )
@@ -132,7 +142,7 @@ server <- function(input, output) {
   })
   
   output$ComArtPlot <- renderPlotly({
-    ggplot(data = community, aes(x = school_name, y = enrollment, fill = "value")) +
+    ggplot(data = community, aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
       geom_bar(stat = "identity") +
       labs(x = "School", y = "Enrollment") +
       theme(legend.position="none")
