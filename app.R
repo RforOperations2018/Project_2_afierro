@@ -135,8 +135,17 @@ server <- function(input, output) {
       addPolygons(data = districts) %>%
       addMarkers(data = schools, clusterOptions = markerClusterOptions())
   })
+  
+  AwardAmountInput <- reactive({
+    ifelse(length(input$DistrictSelect) > 0,
+           (paste0("school_district+IN+%28%27", paste(input$DistrictSelect, collapse = "%27,%27"), "%27",
+           "1=1")))
+    url <- paste("https://data.lacounty.gov/resource/gut7-6rmk.json?where=", filter, "school_district"
+    )
+  })
+  
   output$ArtGrantsPlot <- renderPlotly({
-    ggplot(data = art_grants, aes(x = district, y = award_amount, fill = cycle)) +
+    ggplot(data = AwardAmountInput, aes(x = district, y = award_amount, fill = cycle)) +
       geom_bar(stat = "identity") +
       labs(x = "District", y = "Award Amount")
   })
