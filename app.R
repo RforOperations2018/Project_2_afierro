@@ -137,6 +137,7 @@ server <- function(input, output) {
     
     # Remove "attributes." and "geometry." from rownames
     colnames(dat) <- gsub("attributes.|geometry.", "", colnames(dat))
+
     # Return the dataframe when the function is called
     return(dat)
 })
