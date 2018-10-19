@@ -121,7 +121,7 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
 ui <- dashboardPage(header, sidebar, body)
 
 # Define server logic
-server <- function(input, output) {
+server <- function(input, output, session = session) {
   schoolsInput <- reactive({
     # You removed the part where you assigned the filter!
     filter <- ifelse(length(input$school_select) > 0,
@@ -158,8 +158,7 @@ server <- function(input, output) {
   # })
 
   AwardAmountInput <- reactive({
-    art_grants <- read.socrata("https://data.lacounty.gov/resource/ahzu-94ky.json?$query=SELECTDISTINCT district")
-      sort(unique(art_grants$district))
+    read.socrata("https://data.lacounty.gov/resource/ahzu-94ky.json?$query=SELECTCOUNTDISTINCT(district)FROMhttps://data.lacounty.gov/resource/ahzu-94ky.json")
   })
 
   output$ArtGrantsPlot <- renderPlotly({
