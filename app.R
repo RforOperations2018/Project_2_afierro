@@ -174,10 +174,12 @@ server <- function(input, output, session = session) {
   })
   
   output$ArtGrantsPlot <- renderPlotly({
-    # I don't know how many times I have to say this. reactive functions WILL NOT WORK if they do not have the trailing parens after them "()".
     ggplot(data = AwardAmountInput(), aes(x = district, y = award_amount, fill = cycle)) +
       geom_bar(stat = "identity") +
-      labs(x = "District", y = "Award Amount")
+      labs(x = "District", y = "Award Amount") +
+      scale_y_continuous(labels = function(x) format(x, big.mark = ",",
+                                                     scientific = FALSE)) +
+      theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1))
   })
   
   
@@ -192,17 +194,25 @@ server <- function(input, output, session = session) {
   })
   
   output$ComArtPlot <- renderPlotly({
-    # Not calling the function again
-    ggplot(data = DF, aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
+    ggplot(data = CommunityInput(), aes(x = school_name, y = enrollment, fill = "value", na.rm = TRUE)) +
       geom_bar(stat = "identity") +
       theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1)) +
       labs(x = "School", y = "Enrollment") +
-      theme(legend.position="none")
+      theme(legend.position="none") 
+  })
+  
+  Community2Input <- reactive({
+    DF <- community
+    # ORG Filter
+    if (length(input$ComSchool2Select) > 0 ) {
+      DF <- subset(DF, school_name %in% input$ComSchool2Select)
+    }
+    
+    return(DF)
   })
   
   output$table <- DT::renderDataTable({
-    # Not calling the reactive function.
-    (data = community)
+    (data = Community2Input())
   })
 
   observeEvent(input$reset, {
