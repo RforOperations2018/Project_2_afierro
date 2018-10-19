@@ -61,12 +61,12 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
   tabItem("Chart1",
     fluidRow(
         box(
-        selectInput("DistrictSelect",
+        selectizeInput("DistrictSelect",
                     "District:",
                     choices = sort(unique(art_grants$district)),
                     multiple = TRUE,
-                    selectize = TRUE,
-                    selected = c("East Whittier City Elementary", "Hacienda La Puente Unified")),
+                    selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"),
+                    options = list(maxItems = 15)),
         actionButton("reset", "Reset Filters", icon = icon("refresh"))
         )
       ),
@@ -217,8 +217,8 @@ server <- function(input, output, session = session) {
 
   observeEvent(input$reset, {
     updateSelectInput(session, "school_select")
-    updateSelectInput(session, "DistrictSelect", selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"))
-    updateSelectizeInput(session, "ComSchoolSelect")
+    updateSelectizeInput(session, "DistrictSelect", selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"))
+    updateSelectizeInput(session, "ComSchoolSelect", selected = c("Agua Dulce Elementary", "Martha Baldwin Elementary"))
     updateSelectInput(session, "ComSchool2Select")
     showNotification("You have successfully reset the filters", type = "message")
   })
