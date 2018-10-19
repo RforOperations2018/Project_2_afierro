@@ -33,16 +33,16 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
   sidebar <- dashboardSidebar(
     sidebarMenu(
       id = "tabs",
-      menuItem("Map", tabName = "Map", icon = icon("map-marker")),
-      menuItem("Chart", tabName = "Chart1", icon = icon("bar-chart")),
-      menuItem("Chart", tabName = "Chart2", icon = icon("bar-chart")),
+      menuItem("Map", tabName = "LA County Schools and Districts", icon = icon("map-marker")),
+      menuItem("Chart", tabName = "Arts for All Grants", icon = icon("bar-chart")),
+      menuItem("Chart", tabName = "Community Arts Partners", icon = icon("bar-chart")),
       menuItem("Table", tabName = "Table", icon = icon("table"))
     )
   )
   
   body<- dashboardBody(
     tabItems(
-      tabItem("Map",
+      tabItem("LA County Schools and Districts",
   fluidRow(
     box(
       selectInput("school_select",
@@ -58,7 +58,7 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       leafletOutput("schoolmap")
     )
   )),
-  tabItem("Chart1",
+  tabItem("Arts for All Grants",
     fluidRow(
         box(
         selectInput("DistrictSelect",
@@ -78,7 +78,7 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
       )
     )
   ),
-  tabItem("Chart2",
+  tabItem("Community Arts Partners",
     fluidRow(
       box(
         selectizeInput("ComSchoolSelect",
