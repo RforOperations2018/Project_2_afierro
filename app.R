@@ -81,12 +81,18 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
   tabItem("Chart2",
     fluidRow(
       box(
-        
-      )
-    ),
+        selectizeInput("ComSchoolSelect",
+                       "School:",
+                       choices = sort(unique(community$school_name)),
+                       multiple = TRUE,
+                       options = list(maxItems = 10)),
+        actionButton("reset", "Reset Filters", icon = icon("refresh"))
+          
+        )
+      ),
     fluidRow(
       box(
-        title = "New Chart",
+        title = "Community Arts Partners serving LA County Public Schools",
         width = 12,
         (plotlyOutput("ComArtPlot"))
       )
@@ -126,9 +132,10 @@ server <- function(input, output) {
   })
   
   output$ComArtPlot <- renderPlotly({
-    ggplot(data = community, aes(x = school_name, y = enrollment)) +
+    ggplot(data = community, aes(x = school_name, y = enrollment, fill = "value")) +
       geom_bar(stat = "identity") +
-      labs(x = "", y = "")
+      labs(x = "School", y = "Enrollment") +
+      theme(legend.position="none")
   })
   
   output$table <- DT::renderDataTable({
