@@ -153,6 +153,13 @@ server <- function(input, output) {
     (data = community)
   })
 
+  observeEvent(input$reset, {
+    updateSelectInput(session, "school_select")
+    updateSelectInput(session, "DistrictSelect", selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"))
+    updateSelectizeInput(session, "ComSchoolSelect")
+    updateSelectInput(session, "ComSchool2Select")
+    showNotification("You have successfully reset the filters", type = "message")
+  })
 }
 
 # Run the application 
