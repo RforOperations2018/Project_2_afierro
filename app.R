@@ -234,7 +234,7 @@ server <- function(input, output, session = session) {
     (data = Community2Input())
   })
 
-#This should reset my inputs but it doesn't work. 
+#This should reset my inputs but it doesn't work for each action button. It only resets everything if you click the action reset button on the map tab...
   observeEvent(input$reset, {
     updateSelectInput(session, "school_select")
     updateSelectizeInput(session, "DistrictSelect", selected = c("East Whittier City Elementary", "Hacienda La Puente Unified"))
