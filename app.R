@@ -34,7 +34,8 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
     sidebarMenu(
       id = "tabs",
       menuItem("Map", tabName = "Map", icon = icon("map-marker")),
-      menuItem("Chart", tabName = "Chart", icon = icon("bar-chart")),
+      menuItem("Chart", tabName = "Chart1", icon = icon("bar-chart")),
+      menuItem("Chart", tabName = "Chart2", icon = icon("bar-chart")),
       menuItem("Table", tabName = "Table", icon = icon("table"))
     )
   )
@@ -53,11 +54,11 @@ community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
     )
   ),
   fluidRow(
-    box(
+    box(width = 12,
       leafletOutput("schoolmap")
     )
   )),
-  tabItem("Chart",
+  tabItem("Chart1",
     fluidRow(
         box(
         selectInput("DistrictSelect",
@@ -105,7 +106,7 @@ server <- function(input, output) {
       addMarkers(data = schools, clusterOptions = markerClusterOptions())
   })
   output$ArtGrantsPlot <- renderPlotly({
-    ggplot(data = art_grants, aes(x = district, y = award_amount, fill = "award_amount")) +
+    ggplot(data = art_grants, aes(x = district, y = award_amount, fill = cycle)) +
       geom_bar(stat = "identity") +
       labs(x = "District", y = "Award Amount")
   })
