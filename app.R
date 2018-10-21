@@ -25,6 +25,7 @@ schoolsList <- fromJSON(list)$features
 
 districts <- rgdal::readOGR("https://opendata.arcgis.com/datasets/de0e7b572e2b4c9ba3c1f62227b88a96_8.geojson")
 
+# So to get the unique field values from socrata you gotta use the group parameter: https://dev.socrata.com/docs/queries/group.html in combo with only selecting the column in question.
 art_grants <- read.socrata ("https://data.lacounty.gov/resource/ahzu-94ky.json")
 
 community <- read.socrata("https://data.lacounty.gov/resource/gut7-6rmk.json")
@@ -160,6 +161,7 @@ server <- function(input, output, session = session) {
     leaflet() %>%
       addProviderTiles("Esri.WorldImagery") %>%
   #No fill on polygons because changing the color of them all looked quite complicated
+      # I think subseting the districts to only show the ones that have schools on them would have been a nice addition here.
       addPolygons(data = districts, fillOpacity = 0) %>%
       addMarkers(data = schoolsInput(), lng = ~x, lat = ~y, clusterOptions = markerClusterOptions(), popup = schoolsInput()$TOOLTIP)
   })
